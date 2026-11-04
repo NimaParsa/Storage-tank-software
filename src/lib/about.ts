@@ -1,7 +1,7 @@
 /** Software identity and revision record shown in the settings dialog. */
 
 export const APP_NAME = "TankCalc 650";
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.2.0";
 
 /** ISO dates — edit these when the software is revised. */
 export const FIRST_REVISION = "2026-11-04";
