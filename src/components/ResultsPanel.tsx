@@ -10,6 +10,7 @@ export type TabId =
   | "shell"
   | "bottom"
   | "wind"
+  | "wind-girders"
   | "seismic"
   | "openings"
   | "weights"
@@ -19,6 +20,7 @@ const TABS: Array<{ id: TabId; label: string }> = [
   { id: "shell", label: "Shell" },
   { id: "bottom", label: "Bottom & roof" },
   { id: "wind", label: "Wind & stability" },
+  { id: "wind-girders", label: "Wind girders" },
   { id: "seismic", label: "Seismic" },
   { id: "openings", label: "Openings" },
   { id: "weights", label: "Weights" },
@@ -386,6 +388,32 @@ export default function ResultsPanel({
             a contributing width of shell 16t above and below the ring (§5.9.6.1). The top wind girder
             is mandatory for open-top tanks.
           </p>
+          <h3 className="section-title">Anchorage demand — §5.11.2</h3>
+          <div className="table-wrap"><table className="data-table key-value"><tbody>
+            <tr><th>Anchorage required</th><td><Chip pass={design.wind.stable}>{design.wind.stable ? "No" : "Yes"}</Chip></td><td className="muted">Mwind ≤ 2/3 W × D/2</td></tr>
+            <tr><th>Total uplift resistance required</th><td>{fmt(design.wind.anchorageUplift, 1)} kN</td><td className="muted">beyond dead-weight resistance</td></tr>
+            <tr><th>Required resistance per circumference metre</th><td>{fmt(design.wind.anchoragePerMetre, 2)} kN/m</td><td className="muted">bolt, chair and foundation sizing requires project data</td></tr>
+          </tbody></table></div>
+        </div>
+      ) : null}
+
+      {tab === "wind-girders" ? (
+        <div className="tab-panel">
+          <h3 className="section-title">Intermediate wind girders — §5.9.7</h3>
+          <p className="muted small">H₁ = {fmt(design.wind.h1, 2)} m; transformed shell height Wtr = {fmt(design.wind.wtr, 2)} m. Each ring must provide section modulus Z ≥ D²H₁/17 × (V/190)².</p>
+          <div className="table-wrap"><table className="data-table"><thead><tr><th>Ring</th><th>Elevation</th><th>Required Z</th></tr></thead><tbody>
+            {design.wind.girderElevations.length ? design.wind.girderElevations.map((elevation, i) => <tr key={i}><td>Intermediate {i + 1}</td><td>{fmt(elevation, 2)} m</td><td className="strong">{fmt(design.wind.intermediateZ, 1)} cm³</td></tr>) : <tr><td colSpan={3}>No intermediate ring is required for the entered tank and wind.</td></tr>}
+            <tr><td>Top ring</td><td>{fmt(input.shellHeight, 2)} m</td><td className="strong">{fmt(design.wind.zRequired, 1)} cm³</td></tr>
+          </tbody></table></div>
+          <div className="formula-card"><div className="formula-head"><h3>Typical angle section</h3><span className="muted">schematic only</span></div>
+            <svg className="girder-section-svg" viewBox="0 0 360 190" role="img" aria-label="Typical L shaped wind girder section">
+              <path d="M105 35h150v28H133v94h-28z" fill="var(--accent)" opacity=".82" stroke="var(--ink)" strokeWidth="3" />
+              <line x1="80" y1="35" x2="80" y2="157" stroke="currentColor"/><path d="M75 40l5-8 5 8M75 152l5 8 5-8" fill="none" stroke="currentColor"/><text x="50" y="100" textAnchor="middle" className="svg-label">depth</text>
+              <line x1="105" y1="174" x2="255" y2="174" stroke="currentColor"/><path d="M110 169l-8 5 8 5M250 169l8 5-8 5" fill="none" stroke="currentColor"/><text x="180" y="188" textAnchor="middle" className="svg-label">flange width</text>
+              <text x="270" y="100" className="svg-label">Section Z must meet</text><text x="270" y="116" className="svg-label">the required value.</text>
+            </svg>
+            <p className="muted small">Select a rolled or fabricated section whose section modulus meets the listed requirement, accounting for the effective shell width allowed by §5.9.6.1. This schematic does not specify plate dimensions, welds, local stability or connections.</p>
+          </div>
         </div>
       ) : null}
 
