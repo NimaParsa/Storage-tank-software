@@ -229,6 +229,9 @@ export interface TankDesign {
     wtr: number;
     intermediateGirders: number;
     girderElevations: number[];
+    intermediateZ: number;
+    anchorageUplift: number;
+    anchoragePerMetre: number;
     topThickness: number;
   };
   weights: {
@@ -663,6 +666,9 @@ export function designTank(rawInput: TankInput): TankDesign {
 
   const resisting = ((totalWeight * GRAVITY) / 1000) * (D / 2) * (2 / 3); // kN·m
   const stable = windMoment <= resisting;
+  const anchorageUplift = stable ? 0 : windMoment / (D / 2) - ((totalWeight * GRAVITY) / 1000) * (2 / 3);
+  const anchoragePerMetre = anchorageUplift / (Math.PI * D);
+  const intermediateZ = ((D * D * h1) / 17) * Math.pow(windSpeed / 190, 2);
 
   // --- seismic screening (Annex E) -----------------------------------------
   let seismic: SeismicResult | null = null;
@@ -831,6 +837,9 @@ export function designTank(rawInput: TankInput): TankDesign {
       wtr,
       intermediateGirders,
       girderElevations,
+      intermediateZ,
+      anchorageUplift,
+      anchoragePerMetre,
       topThickness,
     },
     weights: {
