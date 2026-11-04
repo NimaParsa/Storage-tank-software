@@ -8,7 +8,7 @@ import {
   formatDate,
 } from "../lib/about";
 
-export type Theme = "light" | "dark";
+export type Theme = "light" | "olive";
 
 interface Props {
   open: boolean;
@@ -61,11 +61,11 @@ export default function SettingsDialog({ open, theme, onTheme, onClose }: Props)
             </button>
             <button
               type="button"
-              className={theme === "dark" ? "active" : ""}
-              aria-pressed={theme === "dark"}
-              onClick={() => onTheme("dark")}
+              className={theme === "olive" ? "active" : ""}
+              aria-pressed={theme === "olive"}
+              onClick={() => onTheme("olive")}
             >
-              Dark
+              Olive green
             </button>
           </div>
         </section>

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { TankDesign } from "../lib/api650";
 import { fmt } from "../lib/format";
 import { isRoofOpening, sizeLabelFor, type OpeningResult } from "../lib/openings";
@@ -13,10 +14,19 @@ const KY = 0.26; // ellipse squash for the 3/4 view
 export default function TankDiagram({
   design,
   openings = [],
+  printable = false,
 }: {
   design: TankDesign;
   openings?: OpeningResult[];
+  printable?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!expanded) return;
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setExpanded(false); };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [expanded]);
   const { diameter, shellHeight, designLevel } = design.input;
   const rise = design.roof.rise;
   const totalHeight = shellHeight + rise;
@@ -159,14 +169,17 @@ export default function TankDiagram({
   };
 
   return (
-    <section className="card diagram-card">
+    <section className={`card diagram-card${expanded ? " diagram-expanded" : ""}${printable ? " diagram-report" : ""}`}>
       <header className="card-head">
         <h2>3D schematic</h2>
-        <span className="muted">not to scale · azimuth from north</span>
+        {!printable ? <button className="btn btn-ghost diagram-expand" type="button" onClick={() => setExpanded(!expanded)} aria-label={expanded ? "Close enlarged schematic" : "Enlarge schematic"}>{expanded ? "Close ×" : "⤢ Enlarge"}</button> : null}
       </header>
+      {!printable && expanded ? <button className="diagram-scrim" aria-label="Close enlarged schematic" onClick={() => setExpanded(false)} /> : null}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="tank-svg"
+        onClick={() => { if (!printable) setExpanded(true); }}
+        style={{ cursor: printable || expanded ? "default" : "zoom-in" }}
         role="img"
         aria-label="Three-dimensional schematic of the tank showing shell courses, roof, liquid level, wind girders and openings"
       >

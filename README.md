@@ -31,7 +31,7 @@ npm run verify     # engine checks against published worked examples
 | Annular plates | §5.5, Table 5-1a | thickness + minimum radial width |
 | Roof plates | §5.10.2, §5.10.5 | supported cone minimum, self-supporting cone design |
 | Roof loads | §5.10.2 | DL + (Lr or S) + 0.4 Pe and DL + Pe + 0.4 (Lr or S) |
-| Wind girders | §5.9.6, §5.9.7 | top girder Z, H₁, W_tr, intermediate girder count and elevations |
+| Wind girders | §5.9.6, §5.9.7 | top girder Z, H₁, W_tr, intermediate girder count, elevations and required section modulus |
 | Wind overturning | §5.11.2 | moment vs 2/3 resisting weight |
 | Seismic screening | Annex E | Ai/Ac, Wi/Wc, Mrw, Ms, hoop stress, shell compression, anchorage |
 | Shell and roof openings | §5.7 | reinforcement area, pad sizing, neck and clearance checks |
@@ -108,7 +108,7 @@ W_test    = W_empty + W_water                 governs the foundation
 * **3D schematic** in the left panel: oblique projection with shell courses shaded by
   plate thickness, cone roof, liquid level, wind girder rings and every opening drawn on
   its azimuth (front openings solid, back openings faded).
-* **Settings (gear, top right)** switches the light/dark theme, remembers the choice, and
+* **Settings (gear, top right)** switches the light/olive theme, remembers the choice, and
   shows the author, contact details, version and revision dates.
 * **Weights tab** breaks the empty weight down by component, then adds the product and
   hydrostatic-test water to give the operating and test weights.
@@ -160,6 +160,6 @@ src/components/          input panel, 3D schematic, tabs, openings editor,
 scripts/verify.ts        worked-example and behaviour checks
 ```
 
-Version 1.1.0 — added inch (NPS) opening sizes, 3D schematic, light/dark theme,
-settings/about dialog, weight summary tab and substituted calculations in the report.
+Version 1.2.0 — enlargable 3D schematic, olive theme, intermediate wind-girder
+section modulus and elevations, wind anchorage demand, and expanded print calculations.
 Edit `src/lib/about.ts` and `package.json` together when revising the software.
