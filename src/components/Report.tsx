@@ -2,6 +2,7 @@ import { GRAVITY, type TankDesign } from "../lib/api650";
 import { fmt, fmtMass } from "../lib/format";
 import { openingTypeLabel, sizeLabelFor, type OpeningResult } from "../lib/openings";
 import { APP_NAME, APP_VERSION, AUTHOR } from "../lib/about";
+import TankDiagram from "./TankDiagram";
 
 interface CalcRow {
   label: string;
@@ -70,6 +71,28 @@ export default function Report({
       const headExpr = vdp
         ? `(${fmt(course.H, 2)} − ${fmt(vdp.xe, 0)}/1000 = ${fmt(head, 3)})`
         : `${fmt(head, 2)}`;
+      if (vdp && course.index === 1) {
+        const factorD = 1.06 - (0.0696 * D / Math.max(course.H, 0.001)) * Math.sqrt((course.H * G) / (design.sd * E));
+        const factorT = 1.06 - (0.0696 * D / Math.max(course.H, 0.001)) * Math.sqrt(course.H / (design.st * E));
+        return [
+          { label: `Course ${course.index} · VDP t₁`, expr: `[1.06 − (0.0696×${fmt(D, 2)}/${fmt(course.H, 2)})√(${fmt(course.H, 2)}×${fmt(G, 3)}/${design.sd * E})] × (4.9×${fmt(course.H, 2)}×${fmt(D, 2)}×${fmt(G, 3)}/${design.sd * E}) + ${fmt(ca, 2)}; factor ${fmt(factorD, 4)}`, value: `${fmt(course.td, 2)} mm` },
+          { label: `Course ${course.index} · VDP test`, expr: `[1.06 − (0.0696×${fmt(D, 2)}/${fmt(course.H, 2)})√(${fmt(course.H, 2)}/${design.st * E})] × (4.9×${fmt(course.H, 2)}×${fmt(D, 2)}/${design.st * E}); factor ${fmt(factorT, 4)}`, value: `${fmt(course.tt, 2)} mm` },
+        ] satisfies CalcRow[];
+      }
+      if (vdp) {
+        const trial = course.oneFoot;
+        const tu = Math.max(trial.td, trial.tt);
+        const lower = design.courses[course.index - 2];
+        const tL = Math.max(lower?.tRequired ?? tu, tu);
+        const K = tu > 0 ? tL / tu : 1;
+        const C = K > 1 ? K * (K - 1) / (1 + K ** 1.5) : 0;
+        return [
+          { label: `Course ${course.index} · trial t`, expr: `one-foot t_d/t_t = ${fmt(trial.td, 2)}/${fmt(trial.tt, 2)} mm; t_u = ${fmt(tu, 2)} mm`, value: `${fmt(tu, 2)} mm` },
+          { label: `Course ${course.index} · K and C`, expr: `K = max(t_lower ${fmt(tL, 2)}, t_u ${fmt(tu, 2)}) / ${fmt(tu, 2)} = ${fmt(K, 3)}; C = K(K−1)/(1+K^1.5)`, value: fmt(C, 4) },
+          { label: `Course ${course.index} · design point`, expr: `x_e = min[0.61√(R t_u)+320CH, 1000CH, 1.22√(R t_u)]`, value: `${fmt(vdp.xe, 0)} mm` },
+          { label: `Course ${course.index} · t_d / t_t`, expr: `H_eff = ${fmt(course.H, 2)} − ${fmt(vdp.xe, 0)}/1000 = ${fmt(head, 3)} m; apply §5.6.3.3 design/test equations`, value: `${fmt(course.td, 2)} / ${fmt(course.tt, 2)} mm` },
+        ] satisfies CalcRow[];
+      }
       return [
         {
           label: `Course ${course.index} · t_d`,
@@ -422,6 +445,21 @@ export default function Report({
               expr: `W_tr = Σ h (t_top/t_i)^2.5, t_top = ${design.wind.topThickness} mm`,
               value: `${fmt(design.wind.wtr, 2)} m`,
             },
+            {
+              label: "Intermediate girder count",
+              expr: `max(0, ceil(W_tr/H₁) − 1) = max(0, ceil(${fmt(design.wind.wtr, 2)}/${fmt(design.wind.h1, 2)}) − 1)`,
+              value: `${design.wind.intermediateGirders}`,
+            },
+            {
+              label: "Intermediate girder section modulus",
+              expr: `Z = (${fmt(D, 2)}² × ${fmt(design.wind.h1, 2)}/17) × (${fmt(input.windSpeed, 0)}/190)²`,
+              value: `${fmt(design.wind.intermediateZ, 1)} cm³ each`,
+            },
+            {
+              label: "Wind anchorage demand",
+              expr: `max[0, M/(D/2) − (2/3)W] = max[0, ${fmt(design.wind.moment, 1)}/${fmt(D / 2, 2)} − (2/3)×${fmt((weights.total * GRAVITY) / 1000, 1)}]`,
+              value: `${fmt(design.wind.anchorageUplift, 1)} kN total · ${fmt(design.wind.anchoragePerMetre, 2)} kN/m`,
+            },
           ]}
         />
         <p className="report-text">
@@ -720,6 +758,8 @@ export default function Report({
           {today}.
         </p>
       </footer>
+
+      <TankDiagram design={design} openings={openings} printable />
     </div>
   );
 }
